@@ -34,7 +34,6 @@ func ListOfFiles(basePath string, files []filetree.FileEntry) htmlwrapper.Elm {
 						"href": "/" + p,
 					},
 					Contents: []htmlwrapper.Elm{
-						// <i class="fa-regular fa-file"></i>
 						&htmlwrapper.HTMLElm{
 							Tag: "i",
 							Attrs: map[string]string{
@@ -47,6 +46,7 @@ func ListOfFiles(basePath string, files []filetree.FileEntry) htmlwrapper.Elm {
 			},
 		})
 	}
+
 	return &htmlwrapper.HTMLElm{
 		Tag:      "ul",
 		Contents: out,
@@ -74,6 +74,7 @@ func GenerateMarkdown(w http.ResponseWriter, r *http.Request) {
 		Wrap(w, "Directory overview: "+title, html)
 		return
 	}
+
 	if filepath.Ext(currentFile) != ".md" {
 		http.FileServer(http.Dir("/home/pjotr/go/src/github.com/pjotrscholtze/go-docs-viewer/")).ServeHTTP(w, r)
 		return
@@ -110,7 +111,6 @@ func GenerateMarkdown(w http.ResponseWriter, r *http.Request) {
 		spanelements.ParseLineItalicAltElement,
 		spanelements.ParseLineStrikethroughElement,
 	})
-	_ = doc
 	contents := markdowntohtml.Convert(doc)
 
 	title, elm := view.Page(
@@ -118,27 +118,11 @@ func GenerateMarkdown(w http.ResponseWriter, r *http.Request) {
 		"/home/pjotr/go/src/github.com/pjotrscholtze/go-docs-viewer/",
 		filetree.ScanDirs("/home/pjotr/go/src/github.com/pjotrscholtze/go-docs-viewer/*"),
 		&htmlwrapper.MultiElm{
-			Contents: //[]htmlwrapper.Elm{
-			// &htmlwrapper.HTMLElm{
-			// 	Tag: "pre",
-			// 	Contents: []htmlwrapper.Elm{
-			// 		htmlwrapper.Text(content),
-			// 	},
-			// },
-			contents,
-			// },
+			Contents: contents,
 		},
 	)
 	html, _ := elm.AsHTML()
 	Wrap(w, title, html)
-}
-
-func main() {
-	// ScanDirs("/home/pjotr/go/src/github.com/pjotrscholtze/go-docs-viewer/*")
-	http.Handle("/static", http.FileServer(http.Dir("public")))
-	http.HandleFunc("/", GenerateMarkdown)
-	http.ListenAndServe(":8080", nil)
-
 }
 
 func Wrap(w http.ResponseWriter, title, html string) {
@@ -367,4 +351,10 @@ blockquote, dl {
 		</body>
 	</html>`)
 
+}
+
+func main() {
+	http.Handle("/static", http.FileServer(http.Dir("public")))
+	http.HandleFunc("/", GenerateMarkdown)
+	http.ListenAndServe(":8080", nil)
 }

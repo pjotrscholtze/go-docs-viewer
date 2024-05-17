@@ -86,6 +86,7 @@ func Menu(currentPath, basePath string, tree []filetree.FileEntry) (htmlwrapper.
 				ulCSS = "collapse show "
 				expanded = "true"
 			}
+
 			contents = append(contents,
 				&htmlwrapper.HTMLElm{
 					Tag: "li",
@@ -121,6 +122,7 @@ func Menu(currentPath, basePath string, tree []filetree.FileEntry) (htmlwrapper.
 			if path == currentPath {
 				outActive = true
 			}
+
 			base := filepath.Base(node.Name)
 			ext := filepath.Ext(base)
 			if ext != "" {
@@ -141,9 +143,8 @@ func Menu(currentPath, basePath string, tree []filetree.FileEntry) (htmlwrapper.
 							}}}})
 		}
 	}
-	return &htmlwrapper.MultiElm{
-		Contents: contents,
-	}, outActive
+
+	return &htmlwrapper.MultiElm{Contents: contents}, outActive
 }
 
 func Page(currentPath, basePath string, tree []filetree.FileEntry, content htmlwrapper.Elm) (string, htmlwrapper.Elm) {
@@ -153,6 +154,7 @@ func Page(currentPath, basePath string, tree []filetree.FileEntry, content htmlw
 	if ext != "" {
 		base = base[:len(base)-len(ext)]
 	}
+
 	title := StringToName(base)
 	return title, &htmlwrapper.HTMLElm{
 		Tag: "div",
@@ -198,48 +200,21 @@ func Page(currentPath, basePath string, tree []filetree.FileEntry, content htmlw
 					},
 				},
 			},
-			////
 			&htmlwrapper.HTMLElm{
 				Tag: "div",
 				Attrs: map[string]string{
 					"id": "content",
 				},
 				Contents: []htmlwrapper.Elm{
-					// bootstrap.NavBar("", bootstrap.BsColorLight, bootstrap.BsLocationNormal, nil, &htmlwrapper.MultiElm{
-					// 	Contents: []htmlwrapper.Elm{
-					// 		&htmlwrapper.HTMLElm{
-					// 			Tag: "button",
-					// 			Attrs: map[string]string{
-					// 				"type":  "button",
-					// 				"id":    "sidebarCollapse",
-					// 				"class": "btn btn-info",
-					// 			},
-					// 			Contents: []htmlwrapper.Elm{
-					// 				&htmlwrapper.HTMLElm{
-					// 					Tag: "i",
-					// 					Attrs: map[string]string{
-					// 						"class": "fas fa-align-left",
-					// 					},
-					// 					Contents: []htmlwrapper.Elm{
-					// 						htmlwrapper.Text("Toggle sidebar"),
-					// 					},
-					// 				},
-					// 			},
-					// 		},
-					// 	},
-					// }),
 					&htmlwrapper.HTMLElm{
 						Tag: "h1",
 						Contents: []htmlwrapper.Elm{
 							htmlwrapper.Text(title),
 						},
 					},
-					// htmlwrapper.Text("This is an example of a simple admin dashboard"),
 					content,
 				},
 			},
-			//
-
 		},
 	}
 }

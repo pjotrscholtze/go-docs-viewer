@@ -52,12 +52,14 @@ func ScanDirs(path string) []FileEntry {
 			})
 		}
 	}
+
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].IsDir != out[j].IsDir {
 			return true
 		}
 		return strings.Compare(out[i].Name, out[j].Name) < 0
 	})
+
 	return out
 }
 
@@ -71,6 +73,6 @@ func ReadFile(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return string(b), nil
 
+	return string(b), nil
 }
