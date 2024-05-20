@@ -188,7 +188,7 @@ func Page(currentPath, basePath string, tree []filetree.FileEntry, content htmlw
 								Tag:   "h3",
 								Attrs: map[string]string{},
 								Contents: []htmlwrapper.Elm{
-									htmlwrapper.Text("Admin Panel"),
+									htmlwrapper.Text(StringToName(filepath.Base(basePath))),
 								},
 							},
 						},
@@ -199,12 +199,6 @@ func Page(currentPath, basePath string, tree []filetree.FileEntry, content htmlw
 							"class": "list-unstyled components",
 						},
 						Contents: []htmlwrapper.Elm{
-							&htmlwrapper.HTMLElm{
-								Tag: "p",
-								Contents: []htmlwrapper.Elm{
-									htmlwrapper.Text("Dummy Heading"),
-								},
-							},
 							menu,
 						},
 					},
@@ -321,6 +315,9 @@ func Wrap(w http.ResponseWriter, title, html string) {
 		`-webkit-border-radius: 0.25em;`,
 		`border-radius: 0.25em;`,
 		`border-left: 0.3em solid #555;  `,
+		`}`,
+		`.sidebar-header h3 {`,
+		`padding: 0.3em`,
 		`}`,
 	}, "")
 	cssDracula := strings.Join(trimStringArray([]string{
