@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/pjotrscholtze/go-bootstrap/cmd/go-bootstrap/htmlwrapper"
+	"github.com/pjotrscholtze/go-docs-viewer/cmd/go-docs-viewer/converter"
 	"github.com/pjotrscholtze/go-docs-viewer/cmd/go-docs-viewer/filetree"
-	"github.com/pjotrscholtze/go-docs-viewer/cmd/go-docs-viewer/markdowntohtml"
 	"github.com/pjotrscholtze/go-docs-viewer/cmd/go-docs-viewer/view"
 	"github.com/pjotrscholtze/go-markdown/cmd/go-markdown/blockelements"
 	"github.com/pjotrscholtze/go-markdown/cmd/go-markdown/entity"
@@ -112,7 +112,9 @@ func GenerateMarkdown(w http.ResponseWriter, r *http.Request) {
 		view.Error(err.Error(), w)
 	}
 	doc := parser.ParseString(content, parseOrder)
-	contents := markdowntohtml.Convert(doc)
+	conv := converter.NewConverter()
+	contents := conv.Convert(doc)
+	// contents := markdowntohtml.Convert(doc)
 
 	title, elm := view.Page(
 		r.RequestURI,
