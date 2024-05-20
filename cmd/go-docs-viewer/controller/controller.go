@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/pjotrscholtze/go-bootstrap/cmd/go-bootstrap/htmlwrapper"
+	"github.com/pjotrscholtze/go-docs-viewer/cmd/go-docs-viewer/config"
 	"github.com/pjotrscholtze/go-docs-viewer/cmd/go-docs-viewer/converter"
 	"github.com/pjotrscholtze/go-docs-viewer/cmd/go-docs-viewer/filetree"
 	"github.com/pjotrscholtze/go-docs-viewer/cmd/go-docs-viewer/view"
@@ -80,20 +81,24 @@ func ListOfFiles(basePath string, files []filetree.FileEntry) htmlwrapper.Elm {
 	}
 }
 
-func GenerateMarkdown(w http.ResponseWriter, r *http.Request) {
-	currentFile := "/home/pjotr/go/src/github.com/pjotrscholtze/go-docs-viewer/" + r.RequestURI
+type controller struct {
+	config config.Config
+}
+
+func (c *controller) GenerateMarkdown(w http.ResponseWriter, r *http.Request) {
+	currentFile := c.config.BaseDir + r.RequestURI
 	if _, err := os.Stat(currentFile); errors.Is(err, os.ErrNotExist) {
 		// path/to/whatever does not exist
 		view.NotFound(w)
 		return
 	} else if filetree.IsDir(currentFile) {
 		// Is dir.
-		files2 := filetree.ScanDirs("/home/pjotr/go/src/github.com/pjotrscholtze/go-docs-viewer/" + r.RequestURI + "/*")
-		files := filetree.ScanDirs("/home/pjotr/go/src/github.com/pjotrscholtze/go-docs-viewer/*")
-		filesList := ListOfFiles("/home/pjotr/go/src/github.com/pjotrscholtze/go-docs-viewer/", files2)
+		files2 := filetree.ScanDirs(c.config.BaseDir + r.RequestURI + "/*")
+		files := filetree.ScanDirs(c.config.BaseDir + "*")
+		filesList := ListOfFiles(c.config.BaseDir, files2)
 		title, elm := view.Page(
 			r.RequestURI,
-			"/home/pjotr/go/src/github.com/pjotrscholtze/go-docs-viewer/",
+			c.config.BaseDir,
 			files,
 			filesList,
 		)
@@ -103,7 +108,7 @@ func GenerateMarkdown(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if filepath.Ext(currentFile) != ".md" {
-		http.FileServer(http.Dir("/home/pjotr/go/src/github.com/pjotrscholtze/go-docs-viewer/")).ServeHTTP(w, r)
+		http.FileServer(http.Dir(c.config.BaseDir)).ServeHTTP(w, r)
 		return
 	}
 
@@ -114,16 +119,22 @@ func GenerateMarkdown(w http.ResponseWriter, r *http.Request) {
 	doc := parser.ParseString(content, parseOrder)
 	conv := converter.NewConverter()
 	contents := conv.Convert(doc)
-	// contents := markdowntohtml.Convert(doc)
 
 	title, elm := view.Page(
 		r.RequestURI,
-		"/home/pjotr/go/src/github.com/pjotrscholtze/go-docs-viewer/",
-		filetree.ScanDirs("/home/pjotr/go/src/github.com/pjotrscholtze/go-docs-viewer/*"),
+		c.config.BaseDir,
+		filetree.ScanDirs(c.config.BaseDir+"*"),
 		&htmlwrapper.MultiElm{
 			Contents: contents,
 		},
 	)
 	html, _ := elm.AsHTML()
 	view.Wrap(w, title, html)
+}
+
+func GenerateMarkdownFunc(c config.Config) func(w http.ResponseWriter, r *http.Request) {
+	cntrl := controller{
+		config: c,
+	}
+	return cntrl.GenerateMarkdown
 }
