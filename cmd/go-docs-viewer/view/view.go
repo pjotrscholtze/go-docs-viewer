@@ -80,6 +80,9 @@ func NotFound(w http.ResponseWriter) {
 func Menu(currentPath, basePath string, tree []filetree.FileEntry) (htmlwrapper.Elm, bool) {
 	contents := []htmlwrapper.Elm{}
 	outActive := false
+	if !strings.HasSuffix(basePath, string(filepath.Separator)) {
+		basePath = basePath + string(filepath.Separator)
+	}
 	for _, node := range tree {
 		path := "/" + node.Path[len(basePath):]
 		id := StringToId(path)

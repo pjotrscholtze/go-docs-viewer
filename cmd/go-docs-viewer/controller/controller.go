@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pjotrscholtze/go-bootstrap/cmd/go-bootstrap/htmlwrapper"
 	"github.com/pjotrscholtze/go-docs-viewer/cmd/go-docs-viewer/config"
@@ -47,6 +48,9 @@ var parseOrder = []func(input []entity.MarkdownElement, parserFn func(input stri
 
 func ListOfFiles(basePath string, files []filetree.FileEntry) htmlwrapper.Elm {
 	out := []htmlwrapper.Elm{}
+	if !strings.HasSuffix(basePath, string(filepath.Separator)) {
+		basePath = basePath + string(filepath.Separator)
+	}
 	for _, file := range files {
 		icon := "fa-regular fa-file"
 		if file.IsDir {
@@ -86,18 +90,23 @@ type controller struct {
 }
 
 func (c *controller) GenerateMarkdown(w http.ResponseWriter, r *http.Request) {
-	currentFile := c.config.BaseDir + r.RequestURI
-	if _, err := os.Stat(currentFile); errors.Is(err, os.ErrNotExist) {
+	requestURI := r.RequestURI
+	// File paths that are provided should always be absolute, otherwise remote
+	// file exposure could happen, therefore, if a non absolute path is
+	// provided, we consider it not found.
+	isAbs := filepath.IsAbs(requestURI)
+	currentFile := filepath.Join(c.config.BaseDir, requestURI)
+	if _, err := os.Stat(currentFile); errors.Is(err, os.ErrNotExist) || !isAbs {
 		// path/to/whatever does not exist
 		view.NotFound(w)
 		return
 	} else if filetree.IsDir(currentFile) {
 		// Is dir.
-		files2 := filetree.ScanDirs(c.config.BaseDir + r.RequestURI + "/*")
-		files := filetree.ScanDirs(c.config.BaseDir + "*")
+		files2 := filetree.ScanDirs(filepath.Join(c.config.BaseDir, requestURI, "*"))
+		files := filetree.ScanDirs(filepath.Join(c.config.BaseDir, "*"))
 		filesList := ListOfFiles(c.config.BaseDir, files2)
 		title, elm := view.Page(
-			r.RequestURI,
+			requestURI,
 			c.config.BaseDir,
 			files,
 			filesList,
@@ -121,9 +130,9 @@ func (c *controller) GenerateMarkdown(w http.ResponseWriter, r *http.Request) {
 	contents := conv.Convert(doc)
 
 	title, elm := view.Page(
-		r.RequestURI,
+		requestURI,
 		c.config.BaseDir,
-		filetree.ScanDirs(c.config.BaseDir+"*"),
+		filetree.ScanDirs(filepath.Join(c.config.BaseDir, "*")),
 		&htmlwrapper.MultiElm{
 			Contents: contents,
 		},
